@@ -4,7 +4,7 @@ import org.springframework.http.HttpStatus;
 
 public class InsufficientFundsException extends ApiException {
   
-  InsufficientFundsException(String message) {
+  public InsufficientFundsException(String message) {
     super(HttpStatus.UNPROCESSABLE_CONTENT, message);
   }
   
