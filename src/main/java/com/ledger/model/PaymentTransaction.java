@@ -22,7 +22,7 @@ import jakarta.persistence.Version;
 
 @Entity
 @Table(name = "payment_transactions")
-public class payment {
+public class PaymentTransaction {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;

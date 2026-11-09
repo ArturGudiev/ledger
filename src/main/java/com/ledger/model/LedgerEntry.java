@@ -40,7 +40,7 @@ public class LedgerEntry {
 
   @ManyToOne(optional = true)
   @JoinColumn(name = "payment_id", nullable = true)
-  private payment payment;
+  private PaymentTransaction payment;
 
   @Enumerated(EnumType.STRING)
   @Column(name = "entry_type", nullable = false, length = 8)
@@ -94,11 +94,11 @@ public class LedgerEntry {
     this.transfer = transfer;
   }
 
-  public payment getPayment() {
+  public PaymentTransaction getPayment() {
     return payment;
   }
 
-  public void setPayment(payment paymentTransaction) {
+  public void setPayment(PaymentTransaction paymentTransaction) {
     this.payment = paymentTransaction;
   }
 
