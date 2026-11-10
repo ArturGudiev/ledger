@@ -3,18 +3,26 @@ package com.ledger.model;
 import java.math.BigDecimal;
 import java.time.Instant;
 
+import com.ledger.model.enums.PaymentStatus;
+import com.ledger.model.enums.PaymentType;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 
 @Entity
 @Table(name = "payment_transactions")
-public class PaymentTransaction {
+public class payment {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
@@ -30,8 +38,9 @@ public class PaymentTransaction {
   @JoinColumn(name = "wallet_id", nullable = false)
   private Wallet wallet;
 
+  @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 16)
-  private String type;
+  private PaymentType type;
 
   @Column(nullable = false, precision = 28, scale = 12)
   private BigDecimal amount;
@@ -39,8 +48,9 @@ public class PaymentTransaction {
   @Column(nullable = false, length = 3)
   private String currency;
 
+  @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 16)
-  private String status;
+  private PaymentStatus status = PaymentStatus.PENDING;
 
   @Column(name = "external_payment_id", length = 64)
   private String externalPaymentId;
@@ -49,16 +59,29 @@ public class PaymentTransaction {
   private String failureReason;
 
   @Column(nullable = false)
-  private Integer attempts;
+  private int attempts = 0;
 
+  @Version
   @Column(nullable = false)
-  private Long version;
+  private long version;
 
   @Column(name = "created_at", nullable = false)
   private Instant createdAt;
 
   @Column(name = "updated_at", nullable = false)
   private Instant updatedAt;
+
+  @PrePersist
+  private void onCreate() {
+    Instant now = Instant.now();
+    createdAt = now;
+    updatedAt = now;
+  }
+
+  @PreUpdate
+  private void onUpdate() {
+    updatedAt = Instant.now();
+  }
 
   public Long getId() {
     return id;
@@ -92,11 +115,11 @@ public class PaymentTransaction {
     this.wallet = wallet;
   }
 
-  public String getType() {
+  public PaymentType getType() {
     return type;
   }
 
-  public void setType(String type) {
+  public void setType(PaymentType type) {
     this.type = type;
   }
 
@@ -116,11 +139,11 @@ public class PaymentTransaction {
     this.currency = currency;
   }
 
-  public String getStatus() {
+  public PaymentStatus getStatus() {
     return status;
   }
 
-  public void setStatus(String status) {
+  public void setStatus(PaymentStatus status) {
     this.status = status;
   }
 
@@ -140,19 +163,19 @@ public class PaymentTransaction {
     this.failureReason = failureReason;
   }
 
-  public Integer getAttempts() {
+  public int getAttempts() {
     return attempts;
   }
 
-  public void setAttempts(Integer attempts) {
+  public void setAttempts(int attempts) {
     this.attempts = attempts;
   }
 
-  public Long getVersion() {
+  public long getVersion() {
     return version;
   }
 
-  public void setVersion(Long version) {
+  public void setVersion(long version) {
     this.version = version;
   }
 

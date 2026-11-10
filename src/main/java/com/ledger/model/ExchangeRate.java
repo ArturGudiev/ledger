@@ -8,6 +8,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
@@ -16,16 +18,16 @@ import jakarta.persistence.UniqueConstraint;
   name = "exchange_rates",
   uniqueConstraints = @UniqueConstraint(columnNames = {"base_currency", "quote_currency"})
 )
-public class ExchangeRates {
+public class ExchangeRate {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(name = "base_currency", nullable = false, length = 3)
+  @Column(name = "base_currency", nullable = false, length = 3, updatable = false)
   private String baseCurrency;
 
-  @Column(name = "quote_currency", nullable = false, length = 3)
+  @Column(name = "quote_currency", nullable = false, length = 3, updatable = false)
   private String quoteCurrency;
 
   @Column(nullable = false, precision = 28, scale = 12)
@@ -33,6 +35,13 @@ public class ExchangeRates {
 
   @Column(name = "updated_at", nullable = false)
   private Instant updatedAt;
+  
+  @PreUpdate
+  @PrePersist
+  private void onPersist() {
+      Instant now = Instant.now();
+      updatedAt = now;
+  }
 
   public Long getId() {
     return id;
@@ -73,4 +82,6 @@ public class ExchangeRates {
   public void setUpdatedAt(Instant updatedAt) {
     this.updatedAt = updatedAt;
   }
+
+
 }

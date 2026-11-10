@@ -3,14 +3,21 @@ package com.ledger.model;
 import java.math.BigDecimal;
 import java.time.Instant;
 
+import com.ledger.model.enums.TransferStatus;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 
 @Entity
 @Table(name = "transfers")
@@ -26,11 +33,11 @@ public class Transfer {
   @JoinColumn(name = "user_id", nullable = false)
   private User user;
 
-  @ManyToOne(optional = true)
+  @ManyToOne(fetch = FetchType.LAZY, optional = true)
   @JoinColumn(name = "from_wallet_id", nullable = true)
   private Wallet fromWallet;
 
-  @ManyToOne(optional = true)
+  @ManyToOne(fetch = FetchType.LAZY, optional = true)
   @JoinColumn(name = "to_wallet_id", nullable = true)
   private Wallet toWallet;
 
@@ -47,22 +54,30 @@ public class Transfer {
   private BigDecimal fxRate;
 
   @Column(nullable = false, precision = 28, scale = 12)
-  private BigDecimal fee;
+  private BigDecimal fee = BigDecimal.ZERO;
 
+  @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 16)
-  private String status;
+  private TransferStatus status = TransferStatus.PENDING;
 
   @Column(length = 1000)
   private String errorMessage;
 
+  @Version
   @Column(nullable = false)
-  private Long version;
+  private long version;
 
   @Column(nullable = false, name = "created_at")
   private Instant createdAt;
 
   @Column(name = "completed_at")
   private Instant completedAt;
+
+  @PrePersist
+  private void onCreate() {
+    Instant now = Instant.now();
+    createdAt = now;
+  }
 
   public Long getId() {
     return id;
@@ -144,11 +159,11 @@ public class Transfer {
     this.fee = fee;
   }
 
-  public String getStatus() {
+  public TransferStatus getStatus() {
     return status;
   }
 
-  public void setStatus(String status) {
+  public void setStatus(TransferStatus status) {
     this.status = status;
   }
 

@@ -3,13 +3,18 @@ package com.ledger.model;
 import java.math.BigDecimal;
 import java.time.Instant;
 
+import com.ledger.model.enums.EntryType;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
@@ -35,10 +40,11 @@ public class LedgerEntry {
 
   @ManyToOne(optional = true)
   @JoinColumn(name = "payment_id", nullable = true)
-  private PaymentTransaction paymentTransaction;
+  private payment payment;
 
+  @Enumerated(EnumType.STRING)
   @Column(name = "entry_type", nullable = false, length = 8)
-  private String entryType;
+  private EntryType entryType;
 
   @Column(nullable = false, precision = 28, scale = 12)
   private BigDecimal amount;
@@ -57,6 +63,12 @@ public class LedgerEntry {
 
   @Column(name = "created_at", nullable = false)
   private Instant createdAt;
+
+  @PrePersist 
+  private void onCreate() {
+    Instant now = Instant.now();
+    createdAt = now;
+  }
 
   public Long getId() {
     return id;
@@ -82,19 +94,19 @@ public class LedgerEntry {
     this.transfer = transfer;
   }
 
-  public PaymentTransaction getPaymentTransaction() {
-    return paymentTransaction;
+  public payment getPayment() {
+    return payment;
   }
 
-  public void setPaymentTransaction(PaymentTransaction paymentTransaction) {
-    this.paymentTransaction = paymentTransaction;
+  public void setPayment(payment paymentTransaction) {
+    this.payment = paymentTransaction;
   }
 
-  public String getEntryType() {
+  public EntryType getEntryType() {
     return entryType;
   }
 
-  public void setEntryType(String entryType) {
+  public void setEntryType(EntryType entryType) {
     this.entryType = entryType;
   }
 

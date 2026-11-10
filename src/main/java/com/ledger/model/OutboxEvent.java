@@ -2,6 +2,9 @@ package com.ledger.model;
 
 import java.time.Instant;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import com.ledger.model.enums.OutboxStatus;
 
 import jakarta.persistence.Column;
@@ -11,11 +14,13 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 
 @Entity
 @Table(name = "outbox_events")
-public class OutboxEvents {
+public class OutboxEvent {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
@@ -29,7 +34,8 @@ public class OutboxEvents {
   @Column(name = "event_type", nullable = false, length = 64)
   private String eventType;
 
-  @Column(name = "payload", nullable = false, columnDefinition = "jsonb")
+  @JdbcTypeCode(SqlTypes.JSON)
+  @Column(nullable = false, columnDefinition = "jsonb")
   private String payload;
 
   @Enumerated(EnumType.STRING)
@@ -37,7 +43,7 @@ public class OutboxEvents {
   private OutboxStatus status = OutboxStatus.PENDING;
 
   @Column(nullable = false)
-  private Integer attempts;
+  private int attempts = 0;
 
   @Column(name = "available_at", nullable = false)
   private Instant availableAt;
@@ -48,8 +54,15 @@ public class OutboxEvents {
   @Column(name = "published_at", nullable = true)
   private Instant publishedAt;
 
+  @Version
   @Column(nullable = false)
-  private Long version;
+  private long version;
+
+  @PrePersist
+  private void onCreate() {
+    Instant now = Instant.now();
+    createdAt = now;
+  }
 
   public Long getId() {
     return id;
@@ -99,11 +112,11 @@ public class OutboxEvents {
     this.status = status;
   }
 
-  public Integer getAttempts() {
+  public int getAttempts() {
     return attempts;
   }
 
-  public void setAttempts(Integer attempts) {
+  public void setAttempts(int attempts) {
     this.attempts = attempts;
   }
 
@@ -131,11 +144,12 @@ public class OutboxEvents {
     this.publishedAt = publishedAt;
   }
 
-  public Long getVersion() {
+  public long getVersion() {
     return version;
   }
 
-  public void setVersion(Long version) {
+  public void setVersion(long version) {
     this.version = version;
   }
+  
 }
