@@ -3,9 +3,6 @@ package com.ledger.model;
 import java.math.BigDecimal;
 import java.time.Instant;
 
-import com.ledger.model.enums.PaymentStatus;
-import com.ledger.model.enums.PaymentType;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -23,6 +20,11 @@ import jakarta.persistence.Version;
 @Entity
 @Table(name = "payment_transactions")
 public class PaymentTransaction {
+	
+	public enum PaymentType {TOP_UP, WITHDRAW}
+
+    public enum PaymentStatus {PENDING, COMPLETED, FAILED, ROLLED_BACK}
+	
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;

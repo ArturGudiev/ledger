@@ -3,8 +3,6 @@ package com.ledger.model;
 import java.math.BigDecimal;
 import java.time.Instant;
 
-import com.ledger.model.enums.WalletStatus;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -26,6 +24,9 @@ import jakarta.persistence.Version;
   uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "currency"})
 )
 public class Wallet {
+	
+	 public enum WalletStatus {ACTIVE, FROZEN, CLOSED}
+	
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;

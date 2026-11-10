@@ -2,9 +2,6 @@ package com.ledger.model;
 
 import java.time.Instant;
 
-import com.ledger.model.enums.Role;
-import com.ledger.model.enums.UserStatus;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -19,6 +16,11 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "users")
 public class User {
+	
+	
+	public enum UserRole {USER, ADMIN, SYSTEM}
+
+    public enum UserStatus {ACTIVE, LOCKED}
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,7 +40,7 @@ public class User {
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 16)
-  private Role role = Role.USER;
+  private UserRole role = UserRole.USER;
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 16)
@@ -105,11 +107,11 @@ public class User {
     this.lastName = lastName;
   }
 
-  public Role getRole() {
+  public UserRole getRole() {
     return role;
   }
 
-  public void setRole(Role role) {
+  public void setRole(UserRole role) {
     this.role = role;
   }
 

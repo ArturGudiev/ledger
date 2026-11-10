@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import com.ledger.model.OutboxEvent;
-import com.ledger.model.enums.OutboxStatus;
+import com.ledger.model.OutboxEvent.OutboxStatus;
 
 public interface OutboxRepository extends JpaRepository<OutboxEvent, Long> {
     

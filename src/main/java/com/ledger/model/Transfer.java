@@ -3,8 +3,6 @@ package com.ledger.model;
 import java.math.BigDecimal;
 import java.time.Instant;
 
-import com.ledger.model.enums.TransferStatus;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -22,6 +20,9 @@ import jakarta.persistence.Version;
 @Entity
 @Table(name = "transfers")
 public class Transfer {
+	
+	public enum TransferStatus {PENDING, COMPLETED, ROLLED_BACK, FAILED}
+	
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;

@@ -5,8 +5,6 @@ import java.time.Instant;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import com.ledger.model.enums.OutboxStatus;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -21,6 +19,9 @@ import jakarta.persistence.Version;
 @Entity
 @Table(name = "outbox_events")
 public class OutboxEvent {
+	
+	public enum OutboxStatus {PENDING, PUBLISHED, FAILED}
+	
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
