@@ -22,8 +22,8 @@ public record TransferDto(
   public static TransferDto from(Transfer transfer) {
     return new TransferDto(
       transfer.getId(),
-      transfer.getFromWallet().getId(),
-      transfer.getToWallet().getId(),
+      transfer.getFromWallet() == null ? null : transfer.getFromWallet().getId(),
+      transfer.getToWallet() == null ? null : transfer.getToWallet().getId(),
       transfer.getCurrency(),
       transfer.getAmount(),
       transfer.getConvertedAmount(),

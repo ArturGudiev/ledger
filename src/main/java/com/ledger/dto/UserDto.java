@@ -19,8 +19,8 @@ public record UserDto (
       user.getEmail(),
       user.getFirstName(),
       user.getLastName(),
-      user.getRole().name(),
-      user.getStatus().name(),
+      user.getRole() != null ? user.getRole().name() : null,
+      user.getStatus() != null ? user.getStatus().name() : null,
       user.getCreatedAt()
     );
   }
