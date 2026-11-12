@@ -23,9 +23,6 @@ import jakarta.persistence.UniqueConstraint;
     columnNames = {"wallet_id", "operation_key"}
   )
 )
-
-
-
 public class LedgerEntry {
 	
 	public enum LedgerEntryType {DEBIT, CREDIT}

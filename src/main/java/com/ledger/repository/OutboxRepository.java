@@ -15,7 +15,7 @@ public interface OutboxRepository extends JpaRepository<OutboxEvent, Long> {
     
     @Query("""
         select e from OutboxEvent e
-        where e.status = com.ledger.model.enums.OutboxStatus.PENDING
+        where e.status = com.ledger.model.OutboxEvent.OutboxStatus.PENDING
           and e.availableAt <= :availableAt
         order by e.id
         limit :batchSize
