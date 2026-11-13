@@ -12,7 +12,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import com.ledger.model.User;
-import com.ledger.model.User.UserRole;
+import com.ledger.model.User.Role;
 import com.ledger.model.User.UserStatus;
 import com.ledger.model.Wallet;
 import com.ledger.model.Wallet.WalletStatus;
@@ -61,7 +61,7 @@ public class DataSeeder implements CommandLineRunner {
     admin.setPasswordHash(passwordEncoder.encode(properties.app().adminPassword()));
     admin.setFirstName("Ledger");
     admin.setLastName("Admin");
-    admin.setRole(UserRole.ADMIN);
+    admin.setRole(Role.ADMIN);
     admin.setStatus(UserStatus.ACTIVE);
     userRepository.save(admin);
     log.info("Seeded admin user " + email);
@@ -75,11 +75,11 @@ public class DataSeeder implements CommandLineRunner {
       created.setPasswordHash(passwordEncoder.encode(UUID.randomUUID().toString()));
       created.setFirstName("Fee");
       created.setLastName("Account");
-      created.setRole(UserRole.SYSTEM);
+      created.setRole(Role.SYSTEM);
       created.setStatus(UserStatus.ACTIVE);
       return userRepository.save(created);
     });
-    if (system.getRole() != UserRole.SYSTEM) {
+    if (system.getRole() != Role.SYSTEM) {
       throw new IllegalStateException("Fee wallet owner " + email + " must have the SYSTEM role");
     }
 

@@ -17,7 +17,7 @@ import com.ledger.exception.BadRequestException;
 import com.ledger.exception.ConflictException;
 import com.ledger.exception.ResourceNotFoundException;
 import com.ledger.model.User;
-import com.ledger.model.User.UserRole;
+import com.ledger.model.User.Role;
 import com.ledger.model.User.UserStatus;
 import com.ledger.repository.UserRepository;
 import com.ledger.security.JwtService;
@@ -72,7 +72,7 @@ public class AuthService {
     user.setPasswordHash(passwordEncoder.encode(password));
     user.setFirstName(name(request.firstName()));
     user.setLastName(name(request.lastName()));
-    user.setRole(UserRole.USER);
+    user.setRole(Role.USER);
     user.setStatus(UserStatus.ACTIVE);
     user.setFailedLoginAttempts(0);
     try {
@@ -95,8 +95,8 @@ public class AuthService {
     User user = userRepository.findByEmailIgnoreCase(email).orElse(null);
     String hash = user == null ? dummyPasswordHash : user.getPasswordHash();
     boolean matches = passwordEncoder.matches(password, hash);
-    if (user == null || !matches || user.getRole() == UserRole.SYSTEM) {
-      if (user != null && user.getRole() != UserRole.SYSTEM && user.getStatus() != UserStatus.LOCKED) {
+    if (user == null || !matches || user.getRole() == Role.SYSTEM) {
+      if (user != null && user.getRole() != Role.SYSTEM && user.getStatus() != UserStatus.LOCKED) {
         handleFailedLogin(user);
       }
       throw new BadCredentialsException("Invalid email or password");
@@ -118,7 +118,7 @@ public class AuthService {
     );
     User user = userRepository.findById(current.userId())
         .orElseThrow(() -> new BadRequestException("Invalid refresh token"));
-    if (user.getStatus() != UserStatus.ACTIVE || user.getRole() == UserRole.SYSTEM) {
+    if (user.getStatus() != UserStatus.ACTIVE || user.getRole() == Role.SYSTEM) {
       refreshTokenService.revoke(refreshToken);
       throw new BadRequestException("Invalid refresh token");
     }

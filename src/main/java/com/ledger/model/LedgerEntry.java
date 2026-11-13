@@ -25,7 +25,7 @@ import jakarta.persistence.UniqueConstraint;
 )
 public class LedgerEntry {
 	
-	public enum LedgerEntryType {DEBIT, CREDIT}
+	public enum EntryType {DEBIT, CREDIT}
 	
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -45,7 +45,7 @@ public class LedgerEntry {
 
   @Enumerated(EnumType.STRING)
   @Column(name = "entry_type", nullable = false, length = 8)
-  private LedgerEntryType entryType;
+  private EntryType entryType;
 
   @Column(nullable = false, precision = 28, scale = 12)
   private BigDecimal amount;
@@ -103,11 +103,11 @@ public class LedgerEntry {
     this.payment = paymentTransaction;
   }
 
-  public LedgerEntryType getEntryType() {
+  public EntryType getEntryType() {
     return entryType;
   }
 
-  public void setEntryType(LedgerEntryType entryType) {
+  public void setEntryType(EntryType entryType) {
     this.entryType = entryType;
   }
 

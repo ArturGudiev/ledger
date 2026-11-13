@@ -19,7 +19,7 @@ import com.ledger.dto.TransferRequest;
 import com.ledger.exception.BadRequestException;
 import com.ledger.exception.ConflictException;
 import com.ledger.exception.ResourceNotFoundException;
-import com.ledger.model.LedgerEntry.LedgerEntryType;
+import com.ledger.model.LedgerEntry.EntryType;
 import com.ledger.model.Transfer;
 import com.ledger.model.Transfer.TransferStatus;
 import com.ledger.model.User;
@@ -129,14 +129,14 @@ public class TransferService {
     String operationPrefix = "transfer:" + transfer.getId();
     ledgerService.post(
         from,
-        LedgerEntryType.DEBIT,
+        EntryType.DEBIT,
         amount,
         "Transfer to wallet " + to.getId(),
         operationPrefix + ":debit"
     );
     ledgerService.post(
         to,
-        LedgerEntryType.CREDIT,
+        EntryType.CREDIT,
         converted,
         "Transfer from wallet " + from.getId(),
         operationPrefix + ":credit"
@@ -144,7 +144,7 @@ public class TransferService {
     if (feeWallet != null) {
       ledgerService.post(
           feeWallet,
-          LedgerEntryType.CREDIT,
+          EntryType.CREDIT,
           fee,
           "Transfer fee",
           operationPrefix + ":fee"

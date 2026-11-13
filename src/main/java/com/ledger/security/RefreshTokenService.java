@@ -71,11 +71,7 @@ public class RefreshTokenService {
     if (entry == null) {
       if (familyContains(presented.familyId(), presented.tokenId())) {
         revokeFamily(presented.familyId());
-        throw new RefreshTokenReuseException(
-            presented.familyId(),
-            presented.tokenId(),
-            presented.userId()
-        );
+        throw new RefreshTokenReuseException(presented.familyId());
       }
       throw new BadRequestException("Invalid refresh token");
     }

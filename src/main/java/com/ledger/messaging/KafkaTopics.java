@@ -5,17 +5,17 @@ public final class KafkaTopics {
   public static final String PAYMENTS = "ledger.payments";
   public static final String WALLETS = "ledger.wallets";
   public static final String NOTIFICATIONS = "ledger.notifications";
-  public static final String RETRY_SUFFIX = "retry";
-  public static final String DLT_SUFFIX = "dlt";
+  public static final String RETRY_SUFFIX = ".retry";
+  public static final String DLT_SUFFIX = ".dlt";
 
   private KafkaTopics() {}
 
   public static String retryOf(String topic) {
-    return topic + "." + RETRY_SUFFIX;
+    return topic + RETRY_SUFFIX;
   }
 
   public static String dltOf(String topic) {
-    return topic + "." + DLT_SUFFIX;
+    return topic + DLT_SUFFIX;
   }
 
   public static String topicFor(String aggregateType) {

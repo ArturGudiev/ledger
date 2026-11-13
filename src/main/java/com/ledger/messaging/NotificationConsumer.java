@@ -18,8 +18,8 @@ public class NotificationConsumer {
   private static final Logger logger = Logger.getLogger(NotificationConsumer.class.getName());
 
   private static final String TOPIC = KafkaTopics.NOTIFICATIONS;
-  private static final String RETRY_TOPIC = KafkaTopics.NOTIFICATIONS + "." + KafkaTopics.RETRY_SUFFIX;
-  private static final String DLT_TOPIC = KafkaTopics.NOTIFICATIONS + "." + KafkaTopics.DLT_SUFFIX;
+  private static final String RETRY_TOPIC = KafkaTopics.retryOf(KafkaTopics.NOTIFICATIONS);
+  private static final String DLT_TOPIC = KafkaTopics.dltOf(KafkaTopics.NOTIFICATIONS);
 
   private final KafkaTemplate<String, Object> kafkaTemplate;
   private final Counter consumed;

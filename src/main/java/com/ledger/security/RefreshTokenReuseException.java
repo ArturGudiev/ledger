@@ -6,8 +6,8 @@ import com.ledger.exception.ApiException;
 
 public class RefreshTokenReuseException extends ApiException {
 
-    public RefreshTokenReuseException(String familyId, String tokenId, Long userId) {
-        super(HttpStatus.BAD_REQUEST, "Refresh token reuse detected for family: " + familyId + ", token: " + tokenId + ", user: " + userId);
+    public RefreshTokenReuseException(String familyId) {
+        super(HttpStatus.BAD_REQUEST, "Refresh token reuse detected for family: " + familyId);
     }
     
 }

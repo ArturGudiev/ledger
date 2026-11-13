@@ -28,7 +28,7 @@
         select w from Wallet w
         where w.currency = :currency
         and w.user.email = :email
-        and w.user.role = com.ledger.model.User.UserRole.SYSTEM
+        and w.user.role = com.ledger.model.User.Role.SYSTEM
         """)
         Optional<Wallet> findSystemWallet(String currency, String email);
 

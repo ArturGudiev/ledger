@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.ledger.config.LedgerProperties;
 import com.ledger.model.OutboxEvent;
-import com.ledger.model.OutboxEvent.OutboxStatus;
+import com.ledger.model.OutboxEvent.Status;
 import com.ledger.repository.OutboxRepository;
 
 import io.micrometer.core.instrument.MeterRegistry;
@@ -46,7 +46,7 @@ public class OutboxPoller {
     )) {
       try {
         publisher.publish(event);
-        event.setStatus(OutboxStatus.PUBLISHED);
+        event.setStatus(Status.PUBLISHED);
         event.setPublishedAt(Instant.now());
         meterRegistry.counter("ledger.outbox.poller.published").increment();
       } catch (RuntimeException exception) {
@@ -54,7 +54,7 @@ public class OutboxPoller {
         int attempts = event.getAttempts() + 1;
         event.setAttempts(attempts);
         if (attempts >= properties.outbox().maxAttempts()) {
-          event.setStatus(OutboxStatus.FAILED);
+          event.setStatus(Status.FAILED);
         } else {
           event.setAvailableAt(Instant.now().plus(backoff(attempts)));
         }

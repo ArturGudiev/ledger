@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.ledger.exception.BadRequestException;
 import com.ledger.exception.InsufficientFundsException;
 import com.ledger.model.LedgerEntry;
-import com.ledger.model.LedgerEntry.LedgerEntryType;
+import com.ledger.model.LedgerEntry.EntryType;
 import com.ledger.model.Wallet;
 import com.ledger.repository.LedgerEntryRepository;
 
@@ -31,7 +31,7 @@ public class LedgerService {
   @Transactional
   public BigDecimal post(
       Wallet wallet,
-      LedgerEntryType entryType,
+      EntryType entryType,
       BigDecimal amount,
       String description,
       String operationKey

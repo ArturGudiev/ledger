@@ -9,13 +9,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import com.ledger.model.OutboxEvent;
-import com.ledger.model.OutboxEvent.OutboxStatus;
+import com.ledger.model.OutboxEvent.Status;
 
 public interface OutboxRepository extends JpaRepository<OutboxEvent, Long> {
     
     @Query("""
         select e from OutboxEvent e
-        where e.status = com.ledger.model.OutboxEvent.OutboxStatus.PENDING
+        where e.status = com.ledger.model.OutboxEvent.Status.PENDING
           and e.availableAt <= :availableAt
         order by e.id
         limit :batchSize
@@ -23,7 +23,7 @@ public interface OutboxRepository extends JpaRepository<OutboxEvent, Long> {
         """)
     List<OutboxEvent> lockNextBatch(Instant availableAt, int batchSize);
 
-    long countByStatus(OutboxStatus status);
+    long countByStatus(Status status);
 
     Optional<OutboxEvent> findFirstByEventTypeOrderByIdDesc(String eventType);
 }
