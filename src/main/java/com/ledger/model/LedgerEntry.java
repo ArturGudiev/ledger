@@ -74,91 +74,89 @@ public class LedgerEntry {
     createdAt = now;
   }
 
-  public Long getId() {
-    return id;
-  }
-
-  public void setId(Long id) {
-    this.id = id;
-  }
-
   public Wallet getWallet() {
-    return wallet;
+	return wallet;
   }
 
   public void setWallet(Wallet wallet) {
-    this.wallet = wallet;
+	this.wallet = wallet;
   }
 
   public Transfer getTransfer() {
-    return transfer;
+	return transfer;
   }
 
   public void setTransfer(Transfer transfer) {
-    this.transfer = transfer;
+	this.transfer = transfer;
   }
 
   public PaymentTransaction getPayment() {
-    return payment;
+	return payment;
   }
 
-  public void setPayment(PaymentTransaction paymentTransaction) {
-    this.payment = paymentTransaction;
+  public void setPayment(PaymentTransaction payment) {
+	this.payment = payment;
   }
 
   public LedgerEntryType getEntryType() {
-    return entryType;
+	return entryType;
   }
 
   public void setEntryType(LedgerEntryType entryType) {
-    this.entryType = entryType;
+	this.entryType = entryType;
   }
 
   public BigDecimal getAmount() {
-    return amount;
+	return amount;
   }
 
   public void setAmount(BigDecimal amount) {
-    this.amount = amount;
+	this.amount = amount;
   }
 
   public BigDecimal getBalanceAfter() {
-    return balanceAfter;
+	return balanceAfter;
   }
 
   public void setBalanceAfter(BigDecimal balanceAfter) {
-    this.balanceAfter = balanceAfter;
+	this.balanceAfter = balanceAfter;
   }
 
   public String getCurrency() {
-    return currency;
+	return currency;
   }
 
   public void setCurrency(String currency) {
-    this.currency = currency;
+	this.currency = currency;
   }
 
   public String getDescription() {
-    return description;
+	return description;
   }
 
   public void setDescription(String description) {
-    this.description = description;
+	this.description = description;
   }
 
   public String getOperationKey() {
-    return operationKey;
+	return operationKey;
   }
 
   public void setOperationKey(String operationKey) {
-    this.operationKey = operationKey;
+	this.operationKey = operationKey;
   }
 
   public Instant getCreatedAt() {
-    return createdAt;
+	return createdAt;
   }
 
   public void setCreatedAt(Instant createdAt) {
-    this.createdAt = createdAt;
+	this.createdAt = createdAt;
   }
+
+  public Long getId() {
+	return id;
+  }
+
+ 
 }

@@ -30,7 +30,7 @@ public class Transfer {
   @Column(name = "idempotency_key", nullable = false, length = 64, unique = true)
   private String idempotencyKey;
 
-  @ManyToOne(optional = false)
+  @ManyToOne(fetch = FetchType.LAZY, optional = true)
   @JoinColumn(name = "user_id", nullable = false)
   private User user;
 

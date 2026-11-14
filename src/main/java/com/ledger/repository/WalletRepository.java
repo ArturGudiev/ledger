@@ -6,8 +6,9 @@
     import org.springframework.data.jpa.repository.JpaRepository;
     import org.springframework.data.jpa.repository.Lock;
     import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
-    import com.ledger.model.Wallet;
+import com.ledger.model.Wallet;
 
     import jakarta.persistence.LockModeType;
 
@@ -21,7 +22,7 @@
 
         @Lock(LockModeType.PESSIMISTIC_WRITE)
         @Query("select w from Wallet w where w.id = :id")
-        Optional<Wallet> findByIdForUpdate(Long id);
+        Optional<Wallet> findByIdForUpdate(@Param("id") Long id);
 
         @Lock(LockModeType.PESSIMISTIC_WRITE)
         @Query("""
@@ -30,6 +31,6 @@
         and w.user.email = :email
         and w.user.role = com.ledger.model.enums.Role.SYSTEM
         """)
-        Optional<Wallet> findSystemWallet(String currency, String email);
+        Optional<Wallet> findSystemWallet(@Param("currency") String currency, @Param("email") String email);
 
     }
