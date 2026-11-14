@@ -7,6 +7,7 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.ledger.model.OutboxEvent;
 import com.ledger.model.OutboxEvent.OutboxStatus;
@@ -21,7 +22,8 @@ public interface OutboxRepository extends JpaRepository<OutboxEvent, Long> {
         limit :batchSize
         for update skip locked
         """)
-    List<OutboxEvent> lockNextBatch(Instant availableAt, int batchSize);
+    List<OutboxEvent> lockNextBatch(@Param("availableAt") Instant availableAt,
+    	    @Param("batchSize") int batchSize);
 
     long countByStatus(OutboxStatus status);
 

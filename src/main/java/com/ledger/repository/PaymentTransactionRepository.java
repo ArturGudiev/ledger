@@ -7,6 +7,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.ledger.model.PaymentTransaction;
 
@@ -22,5 +23,5 @@ public interface PaymentTransactionRepository extends JpaRepository<PaymentTrans
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select p from PaymentTransaction p where p.id = :id")
-    Optional<PaymentTransaction> findByIdForUpdate(Long id);
+    Optional<PaymentTransaction> findByIdForUpdate(@Param("id") Long id);
 }
