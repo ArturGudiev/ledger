@@ -20,7 +20,7 @@ import jakarta.persistence.Version;
 @Table(name = "outbox_events")
 public class OutboxEvent {
 	
-	public enum OutboxStatus {PENDING, PUBLISHED, FAILED}
+	public enum Status {PENDING, PUBLISHED, FAILED}
 	
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,7 +41,7 @@ public class OutboxEvent {
 
   @Enumerated(EnumType.STRING)
   @Column(name = "status", nullable = false, length = 16)
-  private OutboxStatus status = OutboxStatus.PENDING;
+  private Status status = Status.PENDING;
 
   @Column(nullable = false)
   private int attempts = 0;
@@ -105,11 +105,11 @@ public class OutboxEvent {
     this.payload = payload;
   }
 
-  public OutboxStatus getStatus() {
+  public Status getStatus() {
     return status;
   }
 
-  public void setStatus(OutboxStatus status) {
+  public void setStatus(Status status) {
     this.status = status;
   }
 

@@ -18,7 +18,7 @@ import jakarta.persistence.Table;
 public class User {
 	
 	
-	public enum UserRole {USER, ADMIN, SYSTEM}
+	public enum Role {USER, ADMIN, SYSTEM}
 
     public enum UserStatus {ACTIVE, LOCKED}
 
@@ -40,7 +40,7 @@ public class User {
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 16)
-  private UserRole role = UserRole.USER;
+  private Role role = Role.USER;
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 16)
@@ -107,11 +107,11 @@ public class User {
     this.lastName = lastName;
   }
 
-  public UserRole getRole() {
+  public Role getRole() {
     return role;
   }
 
-  public void setRole(UserRole role) {
+  public void setRole(Role role) {
     this.role = role;
   }
 

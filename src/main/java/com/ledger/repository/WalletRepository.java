@@ -29,7 +29,7 @@ import com.ledger.model.Wallet;
         select w from Wallet w
         where w.currency = :currency
         and w.user.email = :email
-        and w.user.role = com.ledger.model.enums.Role.SYSTEM
+        and w.user.role = com.ledger.model.User.Role.SYSTEM
         """)
         Optional<Wallet> findSystemWallet(@Param("currency") String currency, @Param("email") String email);
 

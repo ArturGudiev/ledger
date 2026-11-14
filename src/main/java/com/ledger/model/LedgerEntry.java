@@ -23,12 +23,9 @@ import jakarta.persistence.UniqueConstraint;
     columnNames = {"wallet_id", "operation_key"}
   )
 )
-
-
-
 public class LedgerEntry {
 	
-	public enum LedgerEntryType {DEBIT, CREDIT}
+	public enum EntryType {DEBIT, CREDIT}
 	
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -48,7 +45,7 @@ public class LedgerEntry {
 
   @Enumerated(EnumType.STRING)
   @Column(name = "entry_type", nullable = false, length = 8)
-  private LedgerEntryType entryType;
+  private EntryType entryType;
 
   @Column(nullable = false, precision = 28, scale = 12)
   private BigDecimal amount;
@@ -98,12 +95,22 @@ public class LedgerEntry {
 	this.payment = payment;
   }
 
+<<<<<<< HEAD
   public LedgerEntryType getEntryType() {
 	return entryType;
+=======
+  public EntryType getEntryType() {
+    return entryType;
+>>>>>>> branch 'main' of https://github.com/ArturGudiev/ledger
   }
 
+<<<<<<< HEAD
   public void setEntryType(LedgerEntryType entryType) {
 	this.entryType = entryType;
+=======
+  public void setEntryType(EntryType entryType) {
+    this.entryType = entryType;
+>>>>>>> branch 'main' of https://github.com/ArturGudiev/ledger
   }
 
   public BigDecimal getAmount() {
