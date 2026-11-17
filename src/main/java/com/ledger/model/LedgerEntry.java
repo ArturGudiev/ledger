@@ -95,22 +95,16 @@ public class LedgerEntry {
 	this.payment = payment;
   }
 
-<<<<<<< HEAD
-  public LedgerEntryType getEntryType() {
-	return entryType;
-=======
+
   public EntryType getEntryType() {
     return entryType;
->>>>>>> branch 'main' of https://github.com/ArturGudiev/ledger
+
   }
 
-<<<<<<< HEAD
-  public void setEntryType(LedgerEntryType entryType) {
-	this.entryType = entryType;
-=======
+
   public void setEntryType(EntryType entryType) {
     this.entryType = entryType;
->>>>>>> branch 'main' of https://github.com/ArturGudiev/ledger
+
   }
 
   public BigDecimal getAmount() {
