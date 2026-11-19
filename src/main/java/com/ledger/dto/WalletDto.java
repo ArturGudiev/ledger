@@ -16,7 +16,7 @@ public record WalletDto (
     return new WalletDto(
       wallet.getId(),
       wallet.getCurrency(),
-      wallet.getStatus().name(),
+      wallet.getStatus() != null ? wallet.getStatus().name() : null,
       balance,
       wallet.getCreatedAt()
     );
