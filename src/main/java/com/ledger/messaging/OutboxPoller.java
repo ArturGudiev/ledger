@@ -2,70 +2,73 @@ package com.ledger.messaging;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.ledger.config.LedgerProperties;
 import com.ledger.model.OutboxEvent;
-import com.ledger.model.OutboxEvent.Status;
 import com.ledger.repository.OutboxRepository;
 
 import io.micrometer.core.instrument.MeterRegistry;
 
 @Component
 public class OutboxPoller {
-  private static final Logger logger = Logger.getLogger(OutboxPoller.class.getName());
 
-  private final OutboxRepository outboxRepository;
-  private final KafkaEventPublisher publisher;
-  private final LedgerProperties properties;
-  private final MeterRegistry meterRegistry;
+    private static final Logger log = LoggerFactory.getLogger(OutboxPoller.class);
 
-  public OutboxPoller(
-      OutboxRepository outboxRepository,
-      KafkaEventPublisher publisher,
-      LedgerProperties properties,
-      MeterRegistry meterRegistry
-  ) {
-    this.outboxRepository = outboxRepository;
-    this.publisher = publisher;
-    this.properties = properties;
-    this.meterRegistry = meterRegistry;
-  }
+    private final OutboxRepository outboxRepository;
+    private final KafkaEventPublisher publisher;
+    private final LedgerProperties properties;
+    private final MeterRegistry meterRegistry;
 
-  @Scheduled(fixedDelayString = "${ledger.outbox.poll-interval-ms:1000}")
-  @Transactional
-  public void publishPending() {
-    for (OutboxEvent event : outboxRepository.lockNextBatch(
-        Instant.now(),
-        properties.outbox().batchSize()
-    )) {
-      try {
-        publisher.publish(event);
-        event.setStatus(Status.PUBLISHED);
-        event.setPublishedAt(Instant.now());
-        meterRegistry.counter("ledger.outbox.poller.published").increment();
-      } catch (RuntimeException exception) {
-        logger.log(Level.WARNING, "Failed to publish outbox event " + event.getId(), exception);
-        int attempts = event.getAttempts() + 1;
-        event.setAttempts(attempts);
-        if (attempts >= properties.outbox().maxAttempts()) {
-          event.setStatus(Status.FAILED);
-        } else {
-          event.setAvailableAt(Instant.now().plus(backoff(attempts)));
-        }
-        meterRegistry.counter("ledger.outbox.poller.failed").increment();
-      }
+    public OutboxPoller(OutboxRepository outboxRepository,
+                        KafkaEventPublisher publisher,
+                        LedgerProperties properties,
+                        MeterRegistry meterRegistry) {
+        this.outboxRepository = outboxRepository;
+        this.publisher = publisher;
+        this.properties = properties;
+        this.meterRegistry = meterRegistry;
     }
-  }
 
-  private Duration backoff(int attempts) {
-    int shift = Math.min(Math.max(attempts - 1, 0), 16);
-    long delay = properties.outbox().pollIntervalMs() * (1L << shift);
-    return Duration.ofMillis(delay);
-  }
+    @Scheduled(fixedDelayString = "${ledger.outbox.poll-interval-ms}")
+    @Transactional
+    public void publishPending() {
+        LedgerProperties.Outbox cfg = properties.outbox();
+        List<OutboxEvent> batch = outboxRepository.lockNextBatch(Instant.now(), cfg.batchSize());
+        for (OutboxEvent event : batch) {
+            try {
+                publisher.publish(event);
+                event.setStatus(OutboxEvent.Status.PUBLISHED);
+                event.setPublishedAt(Instant.now());
+                outboxRepository.save(event);
+            } catch (Exception e) {
+                event.setAttempts(event.getAttempts() + 1);
+                if (event.getAttempts() >= cfg.maxAttempts()) {
+                    event.setStatus(OutboxEvent.Status.FAILED);
+                    log.error("Outbox event {} permanently failed after {} attempts: {}",
+                            event.getId(), event.getAttempts(), e.getMessage());
+                } else {
+                    event.setAvailableAt(Instant.now().plus(backoff(event.getAttempts())));
+                    log.warn("Outbox event {} attempt {} failed, retrying in {}ms: {}",
+                            event.getId(), event.getAttempts(), backoff(event.getAttempts()).toMillis(), e.getMessage());
+                }
+                outboxRepository.save(event);
+            }
+        }
+        if (!batch.isEmpty()) {
+            meterRegistry.counter("ledger.outbox.processed", "batch", String.valueOf(batch.size())).increment();
+        }
+    }
+
+    private Duration backoff(int attempts) {
+        long base = properties.outbox().pollIntervalMs();
+        long delay = Math.min(base * (1L << Math.min(attempts, 6)), 60_000L);
+        return Duration.ofMillis(delay);
+    }
 }

@@ -5,16 +5,17 @@ import java.time.Duration;
 
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 
-public final class RestClientFactory {
+final class RestClientFactory {
 
-  private RestClientFactory() {}
+    private RestClientFactory() {
+    }
 
-  public static JdkClientHttpRequestFactory withTimeouts(Duration connectTimeout, Duration readTimeout) {
-    HttpClient httpClient = HttpClient.newBuilder()
-        .connectTimeout(connectTimeout)
-        .build();
-    JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
-    requestFactory.setReadTimeout(readTimeout);
-    return requestFactory;
-  }
+    static JdkClientHttpRequestFactory withTimeouts(Duration connectTimeout, Duration readTimeout) {
+        HttpClient httpClient = HttpClient.newBuilder()
+                .connectTimeout(connectTimeout)
+                .build();
+        JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(httpClient);
+        factory.setReadTimeout(readTimeout);
+        return factory;
+    }
 }

@@ -5,11 +5,14 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
 import com.ledger.model.OutboxEvent;
+
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -19,56 +22,49 @@ import tools.jackson.databind.ObjectMapper;
 
 @Component
 public class KafkaEventPublisher {
-  private static final Duration SEND_TIMEOUT = Duration.ofSeconds(5);
 
-  private final KafkaTemplate<String, Object> kafkaTemplate;
-  private final ObjectMapper objectMapper;
-  private final Counter publishedCounter;
-  private final Counter publishErrors;
+    private static final Logger log = LoggerFactory.getLogger(KafkaEventPublisher.class);
+    private static final Duration SEND_TIMEOUT = Duration.ofSeconds(5);
 
-  public KafkaEventPublisher(
-      KafkaTemplate<String, Object> kafkaTemplate,
-      ObjectMapper objectMapper,
-      ObjectProvider<MeterRegistry> meterRegistry
-  ) {
-    this.kafkaTemplate = kafkaTemplate;
-    this.objectMapper = objectMapper;
-    MeterRegistry registry = meterRegistry.getIfAvailable(SimpleMeterRegistry::new);
-    this.publishedCounter = registry.counter("ledger.outbox.published");
-    this.publishErrors = registry.counter("ledger.outbox.publish.errors");
-  }
+    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final ObjectMapper objectMapper;
+    private final Counter publishedCounter;
+    private final Counter publishErrors;
 
-  public void publish(OutboxEvent event) {
-    try {
-      OutboxMessage message = new OutboxMessage(
-          event.getId() == null ? null : event.getId().toString(),
-          event.getAggregateType(),
-          event.getAggregateId(),
-          event.getEventType(),
-          parsePayload(event.getPayload()),
-          event.getCreatedAt()
-      );
-      kafkaTemplate.send(KafkaTopics.topicFor(event.getAggregateType()), event.getAggregateId(), message)
-          .get(SEND_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS);
-      publishedCounter.increment();
-    } catch (InterruptedException exception) {
-      Thread.currentThread().interrupt();
-      publishErrors.increment();
-      throw new IllegalStateException("Interrupted while publishing outbox event " + event.getId(), exception);
-    } catch (RuntimeException | TimeoutException | ExecutionException exception) {
-      publishErrors.increment();
-      throw new IllegalStateException("Failed to publish outbox event " + event.getId(), exception);
+    public KafkaEventPublisher(KafkaTemplate<String, Object> kafkaTemplate,
+                               ObjectMapper objectMapper,
+                               MeterRegistry meterRegistry) {
+        this.kafkaTemplate = kafkaTemplate;
+        this.objectMapper = objectMapper;
+        this.publishedCounter = Counter.builder("ledger.outbox.published").register(meterRegistry);
+        this.publishErrors = Counter.builder("ledger.outbox.errors").register(meterRegistry);
     }
-  }
 
-  private Object parsePayload(String payload) {
-    if (payload == null || payload.isBlank()) {
-      return null;
+    public void publish(OutboxEvent event) {
+        String topic = KafkaTopics.topicFor(event.getAggregateType());
+        OutboxMessage message = new OutboxMessage(
+                String.valueOf(event.getId()),
+                event.getAggregateType(),
+                event.getAggregateId(),
+                event.getEventType(),
+                parsePayload(event.getPayload()),
+                event.getCreatedAt());
+        try {
+            kafkaTemplate.send(topic, event.getAggregateId(), message).get(SEND_TIMEOUT.toMillis(), java.util.concurrent.TimeUnit.MILLISECONDS);
+            publishedCounter.increment();
+            log.info("Outbox event {} -> topic {} (type {})", event.getId(), topic, event.getEventType());
+        } catch (Exception e) {
+            publishErrors.increment();
+            throw new IllegalStateException("Failed to publish outbox event " + event.getId() + " to " + topic, e);
+        }
     }
-    try {
-      return objectMapper.readValue(payload, Object.class);
-    } catch (JacksonException exception) {
-      throw new IllegalStateException("Failed to parse outbox payload", exception);
+
+    private Object parsePayload(String json) {
+        try {
+            return objectMapper.readValue(json, Object.class);
+        } catch (Exception e) {
+            log.warn("Unparseable outbox payload for event; sending raw", e);
+            return json;
+        }
     }
-  }
 }

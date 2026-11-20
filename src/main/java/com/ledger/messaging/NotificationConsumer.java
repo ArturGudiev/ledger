@@ -1,9 +1,7 @@
 package com.ledger.messaging;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import org.springframework.beans.factory.ObjectProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.Acknowledgment;
@@ -11,71 +9,68 @@ import org.springframework.stereotype.Component;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 @Component
 public class NotificationConsumer {
-  private static final Logger logger = Logger.getLogger(NotificationConsumer.class.getName());
 
-  private static final String TOPIC = KafkaTopics.NOTIFICATIONS;
-  private static final String RETRY_TOPIC = KafkaTopics.retryOf(KafkaTopics.NOTIFICATIONS);
-  private static final String DLT_TOPIC = KafkaTopics.dltOf(KafkaTopics.NOTIFICATIONS);
+	private static final Logger log = LoggerFactory.getLogger(NotificationConsumer.class);
 
-  private final KafkaTemplate<String, Object> kafkaTemplate;
-  private final Counter consumed;
-  private final Counter failed;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final Counter consumed;
+    private final Counter failed;
 
-  public NotificationConsumer(
-      KafkaTemplate<String, Object> kafkaTemplate,
-      ObjectProvider<MeterRegistry> meterRegistry
-  ) {
-    this.kafkaTemplate = kafkaTemplate;
-    MeterRegistry registry = meterRegistry.getIfAvailable(SimpleMeterRegistry::new);
-    this.consumed = registry.counter("ledger.notifications.consumed");
-    this.failed = registry.counter("ledger.notifications.failed");
-  }
-
-  @KafkaListener(topics = TOPIC)
-  public void onEvent(OutboxMessage message, Acknowledgment acknowledgment) {
-    try {
-      handle(message);
-      consumed.increment();
-      acknowledgment.acknowledge();
-    } catch (RuntimeException exception) {
-      logger.log(Level.WARNING, "Notification handling failed for " + message.eventId(), exception);
-      forward(message, RETRY_TOPIC);
-      acknowledgment.acknowledge();
+    public NotificationConsumer(KafkaTemplate<String, Object> kafkaTemplate, MeterRegistry meterRegistry) {
+        this.kafkaTemplate = kafkaTemplate;
+        this.consumed = Counter.builder("ledger.notifications.consumed").register(meterRegistry);
+        this.failed = Counter.builder("ledger.notifications.failed").register(meterRegistry);
     }
-  }
 
-  @KafkaListener(topics = RETRY_TOPIC)
-  public void onRetry(OutboxMessage message, Acknowledgment acknowledgment) {
-    try {
-      handle(message);
-      consumed.increment();
-      acknowledgment.acknowledge();
-    } catch (RuntimeException exception) {
-      logger.log(Level.WARNING, "Notification retry failed for " + message.eventId(), exception);
-      forward(message, DLT_TOPIC);
-      acknowledgment.acknowledge();
+    @KafkaListener(topics = KafkaTopics.NOTIFICATIONS)
+    public void onEvent(OutboxMessage message, Acknowledgment ack) {
+        try {
+            handle(message);
+            consumed.increment();
+            ack.acknowledge();
+        } catch (Exception e) {
+            failed.increment();
+            log.warn("Notification processing failed for event {}: {}", message.eventId(), e.getMessage());
+            forward(message, KafkaTopics.retryOf(KafkaTopics.NOTIFICATIONS));
+            ack.acknowledge();
+        }
     }
-  }
 
-  @KafkaListener(topics = DLT_TOPIC)
-  public void onDlt(OutboxMessage message, Acknowledgment acknowledgment) {
-    failed.increment();
-    logger.warning("Notification moved to dead letter: " + message.eventId());
-    acknowledgment.acknowledge();
-  }
-
-  private void handle(OutboxMessage message) {
-    String topic = KafkaTopics.topicFor(message.aggregateType());
-    if (!TOPIC.equals(topic)) {
-      forward(message, topic);
+    @KafkaListener(topics = KafkaTopics.NOTIFICATIONS + KafkaTopics.RETRY_SUFFIX)
+    public void onRetry(OutboxMessage message, Acknowledgment ack) {
+        try {
+            handle(message);
+            consumed.increment();
+            ack.acknowledge();
+        } catch (Exception e) {
+            failed.increment();
+            log.error("Notification retry failed for event {}, moving to DLT: {}", message.eventId(), e.getMessage());
+            forward(message, KafkaTopics.dltOf(KafkaTopics.NOTIFICATIONS));
+            ack.acknowledge();
+        }
     }
-  }
 
-  private void forward(OutboxMessage message, String topic) {
-    kafkaTemplate.send(topic, message.aggregateId(), message).join();
-  }
+    @KafkaListener(topics = KafkaTopics.NOTIFICATIONS + KafkaTopics.DLT_SUFFIX)
+    public void onDlt(OutboxMessage message, Acknowledgment ack) {
+        log.error("Notification in DLT: eventId={} type={} aggregateId={}", message.eventId(),
+                message.eventType(), message.aggregateId());
+        ack.acknowledge();
+    }
+
+    private void handle(OutboxMessage message) {
+        log.info("Notification: eventType={} aggregateId={} payload={}", message.eventType(),
+                message.aggregateId(), message.payload());
+        if ("TRANSFER_COMPLETED".equals(message.eventType())
+                && message.payload() instanceof java.util.Map<?, ?> map
+                && "fail-on-purpose".equals(map.get("status"))) {
+            throw new IllegalStateException("Simulated consumer failure");
+        }
+    }
+
+    private void forward(OutboxMessage message, String topic) {
+        kafkaTemplate.send(topic, message.aggregateId(), message);
+    }
 }
